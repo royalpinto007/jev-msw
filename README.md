@@ -84,7 +84,8 @@ server.use(
   jev.mock(
     ({ request, attempt }) => {
       const state = request.state;
-      const vip = typeof state === "object" && state !== null && !Array.isArray(state) && state.vip === true;
+      const vip =
+        typeof state === "object" && state !== null && !Array.isArray(state) && state.vip === true;
       return {
         answers: {
           category: {
