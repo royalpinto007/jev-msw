@@ -1,4 +1,4 @@
-import { delay as mswDelay, http, HttpResponse, passthrough, type HttpResponseResolver } from "msw";
+import { delay as mswDelay, http, HttpResponse, passthrough } from "msw";
 import { completeResponse } from "./answers.js";
 import { createHistory } from "./history.js";
 import { matchesRequest, parseJevRequest } from "./request.js";
@@ -10,11 +10,12 @@ import type {
   JevHistory,
   JevRequest,
   JevResolver,
+  LowConfidenceAnswer,
   MalformedKind,
 } from "./types.js";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
-type InternalResolver = (request: JevRequest, attempt: number) => Promise<Response>;
+type InternalResolver = (request: JevRequest, attempt: number) => Response | Promise<Response>;
 const internals = new WeakMap<JevHandler, InternalResolver>();
 
 export interface JevMock {
@@ -37,14 +38,11 @@ export interface JevMock {
   ): JevHandler;
   respond(answers: Record<string, JevAnswerInput>, options?: HandlerOptions): JevHandler;
   mock(resolver: JevResolver, options?: HandlerOptions): JevHandler;
-  lowConfidence(
-    name: string,
-    answer: Omit<JevAnswerInput, "confidence"> & { confidence?: number },
-    options?: HandlerOptions,
-  ): JevHandler;
+  lowConfidence(name: string, answer: LowConfidenceAnswer, options?: HandlerOptions): JevHandler;
   error(status: number, options?: ErrorOptions): JevHandler;
   serverError(options?: ErrorOptions): JevHandler;
   rateLimited(options?: ErrorOptions & { retryAfterMs?: number }): JevHandler;
+  connectionError(): JevHandler;
   timeout(options?: HandlerOptions): JevHandler;
   malformed(kind?: MalformedKind, options?: HandlerOptions): JevHandler;
   sequence(...handlers: JevHandler[]): JevHandler;
@@ -72,13 +70,15 @@ export function createJevMock(): JevMock {
     return handler;
   };
 
-  const raw = (resolver: HttpResponseResolver): JevHandler =>
-    http.post(ENDPOINT, async (info) => {
-      const parsed = parseJevRequest(await info.request.clone().json());
+  const raw = (resolver: InternalResolver): JevHandler => {
+    const handler = http.post(ENDPOINT, async ({ request }) => {
+      const parsed = parseJevRequest(await request.json());
       history.record({ request: parsed, timestamp: Date.now(), matched: true });
-      attempts += 1;
-      return resolver(info);
+      return resolver(parsed, ++attempts);
     });
+    internals.set(handler, resolver);
+    return handler;
+  };
 
   const api: JevMock = {
     history,
@@ -100,18 +100,20 @@ export function createJevMock(): JevMock {
     },
     mock: make,
     lowConfidence(name, answer, options) {
-      const typed = answer as JevAnswerInput;
       const value =
-        typed.type === "noul" ? typed : { ...typed, confidence: answer.confidence ?? 0.35 };
+        answer.type === "noul" ? answer : { ...answer, confidence: answer.confidence ?? 0.35 };
       return make(() => ({ answers: { [name]: value } }), options);
     },
     error(status, options = {}) {
-      return raw(() =>
-        HttpResponse.json(
+      if (!Number.isInteger(status) || status < 400 || status > 599)
+        throw new Error("jev-msw error status must be an HTTP status from 400 to 599.");
+      return raw(async () => {
+        if (options.delay !== undefined) await mswDelay(options.delay);
+        return HttpResponse.json(
           { error: { message: options.message ?? `Mock Jev error (${String(status)})` } },
           { status, ...(options.headers ? { headers: options.headers } : {}) },
-        ),
-      );
+        );
+      });
     },
     serverError(options) {
       return api.error(500, options);
@@ -124,6 +126,9 @@ export function createJevMock(): JevMock {
           : { "retry-after-ms": String(options.retryAfterMs) }),
       };
       return api.error(429, { ...options, headers });
+    },
+    connectionError() {
+      return raw(() => Promise.resolve(HttpResponse.error()));
     },
     timeout() {
       return raw(async () => {
@@ -147,8 +152,7 @@ export function createJevMock(): JevMock {
     sequence(...handlers) {
       if (handlers.length === 0) throw new Error("jev-msw sequence requires at least one handler.");
       let index = 0;
-      return raw(async ({ request }) => {
-        const parsed = parseJevRequest(await request.clone().json());
+      return raw(async (parsed) => {
         const selected = handlers[Math.min(index++, handlers.length - 1)];
         const resolver = selected && internals.get(selected);
         if (!resolver) throw new Error("jev-msw sequence only accepts jev-msw response handlers.");

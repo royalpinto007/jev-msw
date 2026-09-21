@@ -38,4 +38,16 @@ it("rejects invalid answer/question combinations", () => {
       answers: { category: { type: "choice", choice: "absent", confidence: 1 } },
     }),
   ).toThrow("not present");
+  expect(() =>
+    completeResponse(request, {
+      answers: {
+        category: {
+          type: "choice",
+          choice: "only",
+          confidence: 1,
+          probabilities: { only: 2 },
+        },
+      },
+    }),
+  ).toThrow("probability");
 });

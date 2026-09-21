@@ -22,6 +22,13 @@ function choiceAnswer(question: JevQuestion, answer: ChoiceAnswer): JevAnswer {
   const labels = Object.keys(question.criteria);
   if (!labels.includes(answer.choice))
     throw new Error(`jev-msw choice "${answer.choice}" is not present in the incoming criteria.`);
+  if (answer.probabilities) {
+    for (const [label, probability] of Object.entries(answer.probabilities)) {
+      if (!labels.includes(label))
+        throw new Error(`jev-msw probability label "${label}" is not present in the criteria.`);
+      assertProbability("probability", probability);
+    }
+  }
   const probabilities =
     answer.probabilities ??
     Object.fromEntries(
@@ -39,6 +46,10 @@ function scoreAnswer(question: JevQuestion, answer: ScoreAnswer): JevAnswer {
   if (question.type !== "score" || !Array.isArray(question.criteria))
     throw new Error("jev-msw score answer requires an incoming score question.");
   assertProbability("confidence", answer.confidence);
+  if (!Number.isFinite(answer.score)) throw new Error("jev-msw score must be a finite number.");
+  if (answer.probabilities)
+    for (const probability of Object.values(answer.probabilities))
+      assertProbability("probability", probability);
   const legend =
     answer.legend ??
     Object.fromEntries(question.criteria.map((entry, index) => [String(index), entry]));

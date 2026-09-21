@@ -42,6 +42,20 @@ it("supports retry sequences", async () => {
   expect(jev.history.requests).toHaveLength(2);
 });
 
+it("preserves configured errors inside a retry sequence", async () => {
+  server.use(jev.sequence(jev.rateLimited({ retryAfterMs: 1 }), jev.serverError()));
+  const retrying = new TypeSafeClient({
+    apiKey: "test-key",
+    retry: { maxRetries: 1, backoffInitialMs: 1, backoffMaxMs: 1, backoffJitter: 0 },
+  });
+  await expect(
+    retrying.systemOne({
+      state: null,
+      questions: { category: choice(null, { billing: null, other: null }) },
+    }),
+  ).rejects.toMatchObject({ status: 500 });
+});
+
 it("supports latency, rate limits, and timeouts", async () => {
   server.use(jev.rateLimited({ retryAfterMs: 5 }));
   await expect(request()).rejects.toMatchObject({ status: 429 });

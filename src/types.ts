@@ -78,3 +78,7 @@ export interface ErrorOptions {
   delay?: number;
 }
 export type MalformedKind = "invalid-json" | "empty" | "missing-answers" | "wrong-types";
+export type LowConfidenceAnswer =
+  | (Omit<ChoiceAnswer, "confidence"> & { confidence?: number })
+  | (Omit<ScoreAnswer, "confidence"> & { confidence?: number })
+  | NoulAnswer;
