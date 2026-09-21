@@ -99,6 +99,9 @@
     "access": "public",
     "provenance": true
   },
+  "overrides": {
+    "esbuild": "0.28.2"
+  },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
