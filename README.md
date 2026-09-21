@@ -8,6 +8,8 @@
 
 `jev-msw` provides contract-aware [MSW](https://mswjs.io/) handlers for the real [`@typesafe-ai/sdk`](https://www.npmjs.com/package/@typesafe-ai/sdk). Make Jev-driven tests deterministic without API calls, credentials, latency, or credits.
 
+![Mock a Jev choice and run six passing tests without API calls](docs/assets/jev-msw-demo.gif)
+
 ## 30-second quickstart
 
 ```sh
