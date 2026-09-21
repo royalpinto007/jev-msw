@@ -3,6 +3,12 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "paths": {
+      "jev-msw": ["./src/index.ts"],
+      "jev-msw/node": ["./src/node.ts"],
+      "jev-msw/vitest": ["./src/vitest.ts"],
+      "jev-msw/jest": ["./src/jest.ts"]
+    },
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
