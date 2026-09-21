@@ -8,4 +8,5 @@ coverage/
 .idea/
 .vscode/
 .superpowers/
+docs/superpowers/
 *.log

@@ -82,15 +82,19 @@ Choice probabilities, score legends, score probabilities, model, and zero-token 
 ```ts
 server.use(
   jev.mock(
-    ({ request, attempt }) => ({
-      answers: {
-        category: {
-          type: "choice",
-          choice: request.state.vip ? "priority" : "standard",
-          confidence: attempt === 1 ? 0.88 : 0.99,
+    ({ request, attempt }) => {
+      const state = request.state;
+      const vip = typeof state === "object" && state !== null && !Array.isArray(state) && state.vip === true;
+      return {
+        answers: {
+          category: {
+            type: "choice",
+            choice: vip ? "priority" : "standard",
+            confidence: attempt === 1 ? 0.88 : 0.99,
+          },
         },
-      },
-    }),
+      };
+    },
     {
       match: {
         state: { tenant: "acme" },

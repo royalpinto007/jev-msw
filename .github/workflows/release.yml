@@ -2,8 +2,6 @@ name: Publish npm package
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
 
 permissions:
   contents: read
@@ -11,7 +9,6 @@ permissions:
 
 jobs:
   publish:
-    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name == 'v0.0.1'
     runs-on: ubuntu-latest
     environment: npm
     steps:
