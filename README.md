@@ -4,11 +4,11 @@
 
 [![CI](https://github.com/royalpinto007/jev-msw/actions/workflows/ci.yml/badge.svg)](https://github.com/royalpinto007/jev-msw/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/jev-msw)](https://www.npmjs.com/package/jev-msw)
-[![license](https://img.shields.io/npm/l/jev-msw)](LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `jev-msw` provides contract-aware [MSW](https://mswjs.io/) handlers for the real [`@typesafe-ai/sdk`](https://www.npmjs.com/package/@typesafe-ai/sdk). Make Jev-driven tests deterministic without API calls, credentials, latency, or credits.
 
-![Mock a Jev choice and run six passing tests without API calls](docs/assets/jev-msw-demo.gif)
+![Mock a Jev choice and run six passing tests without API calls](https://raw.githubusercontent.com/royalpinto007/jev-msw/main/docs/assets/jev-msw-demo.gif)
 
 ## 30-second quickstart
 

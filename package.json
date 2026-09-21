@@ -1,6 +1,6 @@
 {
   "name": "jev-msw",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Mock Jev API decisions with MSW for deterministic tests without real API calls or credits.",
   "license": "MIT",
   "author": "royalpinto007",
