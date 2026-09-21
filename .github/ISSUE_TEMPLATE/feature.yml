@@ -1,0 +1,12 @@
+name: Feature request
+description: Suggest a focused addition to the testing API.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Testing use case
+      description: Show the test you want to write and why the current API cannot express it.
+    validations:
+      required: true
