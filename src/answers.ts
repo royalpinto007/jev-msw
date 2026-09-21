@@ -59,6 +59,8 @@ function scoreAnswer(question: JevQuestion, answer: ScoreAnswer): JevAnswer {
     throw new Error("jev-msw score answer requires an incoming score question.");
   assertProbability("confidence", answer.confidence);
   if (!Number.isFinite(answer.score)) throw new Error("jev-msw score must be a finite number.");
+  if (answer.score < 0 || answer.score > question.criteria.length - 1)
+    throw new Error("jev-msw score must be within the incoming rubric range.");
   if (answer.probabilities)
     assertDistribution(
       question.criteria.map((_, index) => String(index)),

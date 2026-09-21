@@ -43,8 +43,8 @@ export interface JevMock {
   serverError(options?: ErrorOptions): JevHandler;
   rateLimited(options?: ErrorOptions & { retryAfterMs?: number }): JevHandler;
   connectionError(): JevHandler;
-  timeout(options?: HandlerOptions): JevHandler;
-  malformed(kind?: MalformedKind, options?: HandlerOptions): JevHandler;
+  timeout(): JevHandler;
+  malformed(kind?: MalformedKind): JevHandler;
   sequence(...handlers: JevHandler[]): JevHandler;
 }
 
@@ -119,6 +119,11 @@ export function createJevMock(): JevMock {
       return api.error(500, options);
     },
     rateLimited(options = {}) {
+      if (
+        options.retryAfterMs !== undefined &&
+        (!Number.isFinite(options.retryAfterMs) || options.retryAfterMs < 0)
+      )
+        throw new Error("jev-msw retryAfterMs must be a non-negative number.");
       const headers = {
         ...options.headers,
         ...(options.retryAfterMs === undefined

@@ -76,6 +76,11 @@ it("rejects invalid answer/question combinations", () => {
       answers: { rating: { type: "score", score: Number.NaN, confidence: 0.5 } },
     }),
   ).toThrow("finite");
+  expect(() =>
+    completeResponse(request, {
+      answers: { rating: { type: "score", score: 2, confidence: 0.5 } },
+    }),
+  ).toThrow("rubric range");
 });
 
 it("preserves explicit score metadata and token usage", () => {

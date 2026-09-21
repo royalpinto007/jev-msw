@@ -77,5 +77,6 @@ it("simulates connection failures and malformed success variants", async () => {
 
 it("validates error status and retry sequences", () => {
   expect(() => jev.error(200)).toThrow("400 to 599");
+  expect(() => jev.rateLimited({ retryAfterMs: -1 })).toThrow("non-negative");
   expect(() => jev.sequence()).toThrow("at least one handler");
 });
