@@ -15,6 +15,16 @@ const assertProbability = (name: string, value: number): void => {
 };
 const round = (value: number): number => Number(value.toFixed(12));
 
+function assertDistribution(labels: string[], probabilities: Record<string, number>): void {
+  const provided = Object.keys(probabilities);
+  if (provided.length !== labels.length || labels.some((label) => !provided.includes(label)))
+    throw new Error("jev-msw probabilities must include every incoming criterion exactly once.");
+  for (const probability of Object.values(probabilities))
+    assertProbability("probability", probability);
+  const total = Object.values(probabilities).reduce((sum, probability) => sum + probability, 0);
+  if (Math.abs(total - 1) > 1e-9) throw new Error("jev-msw probabilities must sum to 1.");
+}
+
 function choiceAnswer(question: JevQuestion, answer: ChoiceAnswer): JevAnswer {
   if (question.type !== "choice" || !question.criteria || Array.isArray(question.criteria))
     throw new Error("jev-msw choice answer requires an incoming choice question.");
@@ -23,11 +33,11 @@ function choiceAnswer(question: JevQuestion, answer: ChoiceAnswer): JevAnswer {
   if (!labels.includes(answer.choice))
     throw new Error(`jev-msw choice "${answer.choice}" is not present in the incoming criteria.`);
   if (answer.probabilities) {
-    for (const [label, probability] of Object.entries(answer.probabilities)) {
+    for (const label of Object.keys(answer.probabilities)) {
       if (!labels.includes(label))
         throw new Error(`jev-msw probability label "${label}" is not present in the criteria.`);
-      assertProbability("probability", probability);
     }
+    assertDistribution(labels, answer.probabilities);
   }
   const probabilities =
     answer.probabilities ??
@@ -35,7 +45,9 @@ function choiceAnswer(question: JevQuestion, answer: ChoiceAnswer): JevAnswer {
       labels.map((label) => [
         label,
         label === answer.choice
-          ? answer.confidence
+          ? labels.length === 1
+            ? 1
+            : answer.confidence
           : round((1 - answer.confidence) / Math.max(labels.length - 1, 1)),
       ]),
     );
@@ -48,8 +60,10 @@ function scoreAnswer(question: JevQuestion, answer: ScoreAnswer): JevAnswer {
   assertProbability("confidence", answer.confidence);
   if (!Number.isFinite(answer.score)) throw new Error("jev-msw score must be a finite number.");
   if (answer.probabilities)
-    for (const probability of Object.values(answer.probabilities))
-      assertProbability("probability", probability);
+    assertDistribution(
+      question.criteria.map((_, index) => String(index)),
+      answer.probabilities,
+    );
   const legend =
     answer.legend ??
     Object.fromEntries(question.criteria.map((entry, index) => [String(index), entry]));

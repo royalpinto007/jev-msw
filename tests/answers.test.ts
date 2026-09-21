@@ -20,7 +20,7 @@ it("handles single-choice probability and deterministic defaults", () => {
   ).toEqual({
     model: "test-model",
     answers: {
-      category: { type: "choice", choice: "only", confidence: 0.4, probabilities: { only: 0.4 } },
+      category: { type: "choice", choice: "only", confidence: 0.4, probabilities: { only: 1 } },
     },
     usage: { input_tokens: 0, output_tokens: 0 },
   });
@@ -50,6 +50,27 @@ it("rejects invalid answer/question combinations", () => {
       },
     }),
   ).toThrow("probability");
+  expect(() =>
+    completeResponse(
+      {
+        ...request,
+        questions: {
+          ...request.questions,
+          category: { type: "choice", criteria: { only: null, other: null } },
+        },
+      },
+      {
+        answers: {
+          category: {
+            type: "choice",
+            choice: "only",
+            confidence: 0.5,
+            probabilities: { only: 0.5 },
+          },
+        },
+      },
+    ),
+  ).toThrow("every incoming criterion");
   expect(() =>
     completeResponse(request, {
       answers: { rating: { type: "score", score: Number.NaN, confidence: 0.5 } },
