@@ -63,3 +63,19 @@ it("supports latency, rate limits, and timeouts", async () => {
   server.use(jev.timeout());
   await expect(request()).rejects.toBeDefined();
 });
+
+it("simulates connection failures and malformed success variants", async () => {
+  server.use(jev.connectionError());
+  await expect(request()).rejects.toBeDefined();
+
+  for (const kind of ["empty", "missing-answers", "wrong-types"] as const) {
+    server.resetHandlers();
+    server.use(jev.malformed(kind));
+    await request();
+  }
+});
+
+it("validates error status and retry sequences", () => {
+  expect(() => jev.error(200)).toThrow("400 to 599");
+  expect(() => jev.sequence()).toThrow("at least one handler");
+});

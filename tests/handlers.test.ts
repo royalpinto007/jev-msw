@@ -81,4 +81,26 @@ describe("answer handlers", () => {
     expect(first.history.requests).toHaveLength(1);
     expect(second.history.requests).toHaveLength(0);
   });
+
+  it("provides low-confidence defaults and explicit artificial latency", async () => {
+    server.use(jev.lowConfidence("category", { type: "choice", choice: "other" }, { delay: 1 }));
+    const result = await client.systemOne({
+      state: null,
+      questions: { category: choice(null, { billing: null, other: null }) },
+    });
+    expect(result.answers.category.confidence).toBe(0.35);
+  });
+
+  it("passes nonmatching requests to a later MSW handler", async () => {
+    server.use(
+      jev.choice("category", { choice: "other", confidence: 1 }, { match: { model: "never" } }),
+      jev.choice("category", { choice: "billing", confidence: 1 }),
+    );
+    const result = await client.systemOne({
+      state: null,
+      questions: { category: choice(null, { billing: null, other: null }) },
+    });
+    expect(result.answers.category.choice).toBe("billing");
+    expect(jev.history.requests.map((record) => record.matched)).toEqual([false, true]);
+  });
 });

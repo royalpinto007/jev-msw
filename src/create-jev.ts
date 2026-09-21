@@ -1,4 +1,4 @@
-import { delay as mswDelay, http, HttpResponse, passthrough } from "msw";
+import { delay as mswDelay, http, HttpResponse } from "msw";
 import { completeResponse } from "./answers.js";
 import { createHistory } from "./history.js";
 import { matchesRequest, parseJevRequest } from "./request.js";
@@ -60,10 +60,10 @@ export function createJevMock(): JevMock {
       );
     };
     const handler = http.post(ENDPOINT, async ({ request }) => {
-      const parsed = parseJevRequest(await request.json());
+      const parsed = parseJevRequest(await request.clone().json());
       const matched = matchesRequest(parsed, options.match);
       history.record({ request: parsed, timestamp: Date.now(), matched });
-      if (!matched) return passthrough();
+      if (!matched) return;
       return internal(parsed, ++attempts);
     });
     internals.set(handler, internal);

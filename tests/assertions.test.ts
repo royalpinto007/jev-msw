@@ -12,6 +12,9 @@ it("reports request count and state assertions", () => {
   expect(historyAssertions.toHaveReceivedTimes(history, 1).pass).toBe(true);
   expect(historyAssertions.toHaveReceived(history, { questions: { ok: "noul" } }).pass).toBe(true);
   expect(historyAssertions.toHaveLastState(history, { id: 7 }).pass).toBe(true);
+  expect(historyAssertions.toHaveReceivedTimes(history, 2).message()).toContain("received 1");
+  expect(historyAssertions.toHaveReceived(history, { model: "other" }).pass).toBe(false);
+  expect(historyAssertions.toHaveLastState(history, { id: 8 }).pass).toBe(false);
   history.clear();
   expect(history.requests).toHaveLength(0);
 });

@@ -31,5 +31,12 @@ describe("request parsing and matching", () => {
         state: (state) => (state as { tenant: string }).tenant === "acme",
       }),
     ).toBe(true);
+    expect(
+      matchesRequest(request, {
+        questions: { category: (question) => question.type === "choice" },
+      }),
+    ).toBe(true);
+    expect(matchesRequest(request, { model: (model) => model.endsWith("mini") })).toBe(true);
+    expect(matchesRequest(request, { questions: { missing: "noul" } })).toBe(false);
   });
 });

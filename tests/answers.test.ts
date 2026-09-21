@@ -50,4 +50,44 @@ it("rejects invalid answer/question combinations", () => {
       },
     }),
   ).toThrow("probability");
+  expect(() =>
+    completeResponse(request, {
+      answers: { rating: { type: "score", score: Number.NaN, confidence: 0.5 } },
+    }),
+  ).toThrow("finite");
+});
+
+it("preserves explicit score metadata and token usage", () => {
+  expect(
+    completeResponse(request, {
+      model: "custom",
+      usage: { input_tokens: 4, output_tokens: 2 },
+      answers: {
+        rating: {
+          type: "score",
+          score: 0.25,
+          confidence: 0.8,
+          legend: { 0: "cold", 1: "hot" },
+          probabilities: { 0: 0.75, 1: 0.25 },
+        },
+      },
+    }),
+  ).toMatchObject({
+    model: "custom",
+    usage: { input_tokens: 4, output_tokens: 2 },
+    answers: { rating: { legend: { 0: "cold", 1: "hot" } } },
+  });
+});
+
+it("rejects answers for the wrong incoming question type", () => {
+  expect(() =>
+    completeResponse(request, {
+      answers: { approved: { type: "choice", choice: "yes", confidence: 1 } },
+    }),
+  ).toThrow("incoming choice question");
+  expect(() =>
+    completeResponse(request, {
+      answers: { approved: { type: "score", score: 1, confidence: 1 } },
+    }),
+  ).toThrow("incoming score question");
 });
