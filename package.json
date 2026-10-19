@@ -107,13 +107,13 @@
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.2",
-    "@typesafe-ai/sdk": "^0.6.0",
+    "@typesafe-ai/sdk": "^0.7.0",
     "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^10.11.0",
     "prettier": "^3.9.8",
     "publint": "^0.3.24",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
+    "tsup": "^9.0.0",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.1"
   }
